@@ -60,7 +60,7 @@ namespace CRUDAccDirPRODOTTI
             BinaryReader f_in = new BinaryReader(f_in_out);
 
             int NumeroRecord = 1;
-            byte[] strInByte;
+            byte[] strInByte; 
             int size = 64;
 
             string Nome = txt_Nome.Text, Prezzo = txt_Prezzo.Text;
