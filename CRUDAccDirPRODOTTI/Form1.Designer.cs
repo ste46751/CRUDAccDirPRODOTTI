@@ -31,7 +31,10 @@
             this.txt_Nome = new System.Windows.Forms.TextBox();
             this.txt_Prezzo = new System.Windows.Forms.TextBox();
             this.bttn_aggiungi = new System.Windows.Forms.Button();
-            this.bttn_file = new System.Windows.Forms.Button();
+            this.bttn_modifica = new System.Windows.Forms.Button();
+            this.txt_nuovoN = new System.Windows.Forms.TextBox();
+            this.txt_nuovoP = new System.Windows.Forms.TextBox();
+            this.txt_cerca = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // txt_Nome
@@ -58,27 +61,52 @@
             this.bttn_aggiungi.UseVisualStyleBackColor = true;
             this.bttn_aggiungi.Click += new System.EventHandler(this.bttn_aggiungi_Click);
             // 
-            // bttn_file
+            // bttn_modifica
             // 
-            this.bttn_file.Location = new System.Drawing.Point(58, 12);
-            this.bttn_file.Name = "bttn_file";
-            this.bttn_file.Size = new System.Drawing.Size(180, 59);
-            this.bttn_file.TabIndex = 3;
-            this.bttn_file.Text = "Crea File";
-            this.bttn_file.UseVisualStyleBackColor = true;
-            this.bttn_file.Click += new System.EventHandler(this.bttn_file_Click);
+            this.bttn_modifica.Location = new System.Drawing.Point(557, 156);
+            this.bttn_modifica.Name = "bttn_modifica";
+            this.bttn_modifica.Size = new System.Drawing.Size(180, 59);
+            this.bttn_modifica.TabIndex = 3;
+            this.bttn_modifica.Text = "Modifica Prodotto";
+            this.bttn_modifica.UseVisualStyleBackColor = true;
+            this.bttn_modifica.Click += new System.EventHandler(this.bttn_modifica_Click);
+            // 
+            // txt_nuovoN
+            // 
+            this.txt_nuovoN.Location = new System.Drawing.Point(232, 174);
+            this.txt_nuovoN.Name = "txt_nuovoN";
+            this.txt_nuovoN.Size = new System.Drawing.Size(127, 22);
+            this.txt_nuovoN.TabIndex = 4;
+            // 
+            // txt_nuovoP
+            // 
+            this.txt_nuovoP.Location = new System.Drawing.Point(394, 174);
+            this.txt_nuovoP.Name = "txt_nuovoP";
+            this.txt_nuovoP.Size = new System.Drawing.Size(127, 22);
+            this.txt_nuovoP.TabIndex = 5;
+            // 
+            // txt_cerca
+            // 
+            this.txt_cerca.Location = new System.Drawing.Point(58, 174);
+            this.txt_cerca.Name = "txt_cerca";
+            this.txt_cerca.Size = new System.Drawing.Size(127, 22);
+            this.txt_cerca.TabIndex = 6;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(957, 534);
-            this.Controls.Add(this.bttn_file);
+            this.Controls.Add(this.txt_cerca);
+            this.Controls.Add(this.txt_nuovoP);
+            this.Controls.Add(this.txt_nuovoN);
+            this.Controls.Add(this.bttn_modifica);
             this.Controls.Add(this.bttn_aggiungi);
             this.Controls.Add(this.txt_Prezzo);
             this.Controls.Add(this.txt_Nome);
             this.Name = "Form1";
             this.Text = "Form1";
+            this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -89,7 +117,10 @@
         private System.Windows.Forms.TextBox txt_Nome;
         private System.Windows.Forms.TextBox txt_Prezzo;
         private System.Windows.Forms.Button bttn_aggiungi;
-        private System.Windows.Forms.Button bttn_file;
+        private System.Windows.Forms.Button bttn_modifica;
+        private System.Windows.Forms.TextBox txt_nuovoN;
+        private System.Windows.Forms.TextBox txt_nuovoP;
+        private System.Windows.Forms.TextBox txt_cerca;
     }
 }
 
