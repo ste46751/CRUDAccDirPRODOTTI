@@ -38,7 +38,7 @@ namespace CRUDAccDirPRODOTTI
             {
                 leggiEsalva();
             }
-            else if(File.Exists("./Lista.dat") == false && File.Exists("./Struct.txt") )
+            else if (File.Exists("./Lista.dat") == false && File.Exists("./Struct.txt") )
             {
                 CreaFile();
                 var file = new FileStream("Struct.txt", FileMode.Truncate, FileAccess.Write, FileShare.Read);
@@ -58,21 +58,27 @@ namespace CRUDAccDirPRODOTTI
         {
             StreamReader sr = new StreamReader(@"Struct.txt");
             string linea = sr.ReadLine();
-            string[] l = linea.Split(';');
+            
 
             do
             {
-                p[NumeroRecord].Nome = l[0];
-                p[NumeroRecord].posizione = Convert.ToInt16(l[1]);
-                NumeroRecord++;
+                if(linea !=null)
+                {
+                    string[] l = linea.Split(';');
 
-                linea = sr.ReadLine();
+                    p[NumeroRecord].Nome = l[0];
+                    p[NumeroRecord].posizione = Convert.ToInt16(l[1]);
+                    NumeroRecord++;
+
+                    linea = sr.ReadLine();
+                }
+
             }
             while(linea!=null);
 
             sr.Close();
         }
-        //FUNZIONE CHE IN CASO NON ESISTA LA STRUCT, LEGGE IL NOME E SALVA LA POSIZIONE DI ESSI
+        //FUNZIONE CHE IN CASO NON ESISTA LA STRUCT, LEGGE IL DAT E SALVA IL NOME E  LA POSIZIONE DEI PRODOTTI
         public void leggiEsalva()
         {
             FileStream file = new FileStream("./Lista.dat", FileMode.OpenOrCreate, FileAccess.ReadWrite);
@@ -136,6 +142,7 @@ namespace CRUDAccDirPRODOTTI
             {
                 sw.WriteLine(p[i].Nome + ";" + p[i].posizione + ";");
             }
+            
 
             sw.Close();
         }
@@ -145,22 +152,26 @@ namespace CRUDAccDirPRODOTTI
         {
             string numero = txt_Prezzo.Text;
             bool controllo = int.TryParse(numero, out _);//TryParse converte un numero da stringa a intero, se non riesce da controllo==false
+
             //se le text box sono vuote appare il messaggio appare schermo fino a quando entrambi i campi non saranno pieni
             if (String.IsNullOrEmpty(txt_Nome.Text) || String.IsNullOrEmpty(txt_Prezzo.Text))
             {
                 MessageBox.Show("Devi riempire tutti i campi per aggiungere un prodotto");
             }
+
             //se sono presenti lettere nel campo dedicato al prezzo non permette di continuare
             else if (controllo == false)
             {
                 MessageBox.Show("Non puoi inserire lettere in questo campo");
                 txt_Prezzo.Text = ("");
             }
+
             //quando le text box sono compilate i dati vengono salvati all'interno dell'array
             else
             {
                 FileStream file = new FileStream("./Lista.dat", FileMode.OpenOrCreate, FileAccess.ReadWrite);
                 BinaryWriter f_out = new BinaryWriter(file);
+                BinaryReader br = new BinaryReader(file);
 
                 byte[] strInByte;
                 int size = 64;
@@ -169,16 +180,41 @@ namespace CRUDAccDirPRODOTTI
                 string riga = Nome.PadRight(32) + Prezzo.PadRight(32);
 
                 strInByte = Encoding.Default.GetBytes(riga);
+                string prodotto;
+                bool c = false;
 
-                f_out.BaseStream.Seek((NumeroRecord) * size, SeekOrigin.Begin);
-                f_out.Write(strInByte);
+                int n = 0;
 
-                p[NumeroRecord].Nome = Nome;
-                p[NumeroRecord].posizione = NumeroRecord;
+                while (c == false) 
+                {
+                    br.BaseStream.Seek((n) * 64, 0);
 
-                NumeroRecord++;
+                    byte[] bit = br.ReadBytes(30);
 
-                MessageBox.Show("Prodotto aggiunto");
+                    prodotto = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
+
+                    if (prodotto[0] != '@')
+                    {
+                        n++;
+                        
+                    }
+                    else
+                    {
+                        p[n].Nome = Nome;
+                        p[n].posizione = n;
+
+                        f_out.BaseStream.Seek((n) * size, SeekOrigin.Begin);
+                        f_out.Write(strInByte);
+
+                        MessageBox.Show("Prodotto aggiunto");
+
+                        
+                        NumeroRecord++;
+                        c = true;
+                    }
+                }
+
+                OrdALf();
 
                 f_out.Close();
                 file.Close();
@@ -186,8 +222,29 @@ namespace CRUDAccDirPRODOTTI
                 txt_Nome.Clear();txt_Prezzo.Clear();
             }
         }
+        
+        private void OrdALf()
+        {
+            //ordinamento BubbleSort che sfrutta la funzione CompareTo per confrontare i nomi dei prodotti
+            for (int i = 0; i <NumeroRecord; i++)
+            {
+                for (int j = i + 1; j < NumeroRecord; j++)
+                {
+                    if (p[i].Nome.CompareTo(p[j].Nome) > 0)
+                    {
+                        string scelta = p[i].Nome;
+                        p[i].Nome = p[j].Nome;
+                        p[j].Nome = scelta;
 
-        /*private void bttn_modifica_Click(object sender, EventArgs e)
+                        int n = p[i].posizione;
+                        p[i].posizione = p[j].posizione;
+                        p[j].posizione = n;
+                    }
+                }
+            }
+        }
+
+       /* private void bttn_modifica_Click(object sender, EventArgs e)
         {
             if (NumeroRecord != 0)
             {
@@ -213,7 +270,7 @@ namespace CRUDAccDirPRODOTTI
                 {
                     for (int i = 0; i < NumeroRecord; i++)
                     {
-                        if (cercaprod == prodotti[i])
+                        if (cercaprod == p[i].Nome)
                         {
                            
                             byte[] strInByte;
@@ -242,7 +299,7 @@ namespace CRUDAccDirPRODOTTI
                 MessageBox.Show("Non puoi modificare il file perchè è vuoto");
             }
         }
-
+/*
         private void ElimLog_Click(object sender, EventArgs e)
         {
             if (NumeroRecord != 0)
