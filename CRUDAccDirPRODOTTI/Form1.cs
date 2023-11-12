@@ -9,12 +9,19 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static CRUDAccDirPRODOTTI.Form1;
 
 namespace CRUDAccDirPRODOTTI
 {
     public partial class Form1 : Form
     {
-        public string[] prodotti = new string[100];
+
+        public struct prodotti
+        {
+            public string Nome;
+            public int posizione;
+        }
+        public prodotti[] p= new prodotti[100];
         public int NumeroRecord;
         public Form1()
         {
@@ -23,9 +30,21 @@ namespace CRUDAccDirPRODOTTI
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            if(File.Exists("./Lista.dat"))
+            if (File.Exists("./Lista.dat") && File.Exists("./Struct.txt"))
+            {
+                salvaStruct();
+            }
+            else if (File.Exists("./Lista.dat") && File.Exists("./Struct.txt")==false)
             {
                 leggiEsalva();
+            }
+            else if(File.Exists("./Lista.dat") == false && File.Exists("./Struct.txt") )
+            {
+                CreaFile();
+                var file = new FileStream("Struct.txt", FileMode.Truncate, FileAccess.Write, FileShare.Read);
+                StreamWriter sw = new StreamWriter(file);
+                sw.Write(string.Empty);
+                sw.Close();
             }
             else
             {
@@ -33,6 +52,60 @@ namespace CRUDAccDirPRODOTTI
             }
             
         }
+
+        //FUNZIONE CHE LEGGE IL FILE TXT E SALVA LA POSIZIONE E IL NOME DEL PRODOTTO NELL'ARRAY 
+        public void salvaStruct()
+        {
+            StreamReader sr = new StreamReader(@"Struct.txt");
+            string linea = sr.ReadLine();
+            string[] l = linea.Split(';');
+
+            do
+            {
+                p[NumeroRecord].Nome = l[0];
+                p[NumeroRecord].posizione = Convert.ToInt16(l[1]);
+                NumeroRecord++;
+
+                linea = sr.ReadLine();
+            }
+            while(linea!=null);
+
+            sr.Close();
+        }
+        //FUNZIONE CHE IN CASO NON ESISTA LA STRUCT, LEGGE IL NOME E SALVA LA POSIZIONE DI ESSI
+        public void leggiEsalva()
+        {
+            FileStream file = new FileStream("./Lista.dat", FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            BinaryReader br = new BinaryReader(file);
+
+            string prodotto;
+            bool controllo = false;
+
+            while (controllo == false)
+            {
+                br.BaseStream.Seek((NumeroRecord) * 64, 0);
+
+                byte[] bit = br.ReadBytes(30);
+
+                prodotto = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
+
+                if (prodotto[0] != '@')
+                {
+                    p[NumeroRecord].Nome = prodotto;
+                    p[NumeroRecord].posizione = NumeroRecord;
+                    NumeroRecord++;
+
+                }
+                else
+                {
+                    controllo = true;
+                }
+
+            }
+            file.Close();
+            br.Close();
+        }
+        //IN CASO NON ESISTA IL FILE DAT, LO CREA E LO RIEMPIE CON CHIOCCIOLE
         public void CreaFile()
         {
             FileStream file = new FileStream("./Lista.dat", FileMode.OpenOrCreate, FileAccess.ReadWrite);
@@ -40,7 +113,7 @@ namespace CRUDAccDirPRODOTTI
             string chiocciola = "@";
             byte[] strInByte;
 
-            string riga = chiocciola.PadRight(32) + chiocciola.PadRight(32);
+            string riga = chiocciola.PadRight(30) + chiocciola.PadRight(30) + chiocciola.PadRight(4);
             strInByte = Encoding.Default.GetBytes(riga);
 
             for (int i = 1; i <= 100; i++)
@@ -53,7 +126,21 @@ namespace CRUDAccDirPRODOTTI
             file.Close();
             bw.Close();
         }
-        
+        //QUANDO VIENE CHIUSO IL PROGRAMMA VIENE CREATO O APERTO IL FILE TXT, E VENGONO SALVATI I NOMI E LE POSIZIONI
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            FileStream f = new FileStream("./Struct.txt", FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            StreamWriter sw = new StreamWriter(f);
+
+            for (int i = 0; i < NumeroRecord; i++)
+            {
+                sw.WriteLine(p[i].Nome + ";" + p[i].posizione + ";");
+            }
+
+            sw.Close();
+        }
+        //PULSANTE AGGIUNGI, QUNDO VIENE PREMUTO IL NOME, IL PREZZO E LA QUANTITA' VENGONO SALVATI NEL FILE DAT
+        //MENTRE NELL'ARRAY VENGONO AGGIUNTI SOLO IL NOME E IL PREZZO
         private void bttn_aggiungi_Click(object sender, EventArgs e)
         {
             string numero = txt_Prezzo.Text;
@@ -72,7 +159,7 @@ namespace CRUDAccDirPRODOTTI
             //quando le text box sono compilate i dati vengono salvati all'interno dell'array
             else
             {
-                FileStream file = new FileStream("Lista.dat", FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                FileStream file = new FileStream("./Lista.dat", FileMode.OpenOrCreate, FileAccess.ReadWrite);
                 BinaryWriter f_out = new BinaryWriter(file);
 
                 byte[] strInByte;
@@ -86,7 +173,8 @@ namespace CRUDAccDirPRODOTTI
                 f_out.BaseStream.Seek((NumeroRecord) * size, SeekOrigin.Begin);
                 f_out.Write(strInByte);
 
-                prodotti[NumeroRecord] = Nome;
+                p[NumeroRecord].Nome = Nome;
+                p[NumeroRecord].posizione = NumeroRecord;
 
                 NumeroRecord++;
 
@@ -99,39 +187,7 @@ namespace CRUDAccDirPRODOTTI
             }
         }
 
-        public void leggiEsalva()// funzione che scrive i nomi dei prodotti nell'array e si posiziona sulla prima riga utilizzabile
-        {
-            FileStream file = new FileStream("./Lista.dat", FileMode.OpenOrCreate, FileAccess.ReadWrite);
-            BinaryReader br = new BinaryReader(file);
-
-            string prodotto;
-            bool controllo = false;
-
-            while (controllo == false)
-            {
-                br.BaseStream.Seek((NumeroRecord) * 64, 0);
-                
-                byte[] bit = br.ReadBytes(32);
-
-                prodotto = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
-
-                if (prodotto[0] != '@')
-                {
-                    prodotti[NumeroRecord] = prodotto;
-                    NumeroRecord++;
-                }
-                else
-                {
-                    controllo = true;
-                }
-
-            }
-
-            file.Close();
-            br.Close();
-        }
-
-        private void bttn_modifica_Click(object sender, EventArgs e)
+        /*private void bttn_modifica_Click(object sender, EventArgs e)
         {
             if (NumeroRecord != 0)
             {
@@ -292,6 +348,6 @@ namespace CRUDAccDirPRODOTTI
             {
                 MessageBox.Show("Non puoi eliminare il file perchè è vuoto");
             }
-        }
+        }*/
     }
 }

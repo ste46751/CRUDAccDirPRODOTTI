@@ -76,7 +76,6 @@
             this.bttn_modifica.TabIndex = 3;
             this.bttn_modifica.Text = "Modifica Prodotto";
             this.bttn_modifica.UseVisualStyleBackColor = true;
-            this.bttn_modifica.Click += new System.EventHandler(this.bttn_modifica_Click);
             // 
             // txt_nuovoN
             // 
@@ -107,7 +106,6 @@
             this.bttn_ElimLog.TabIndex = 7;
             this.bttn_ElimLog.Text = "Eliminazione Logica";
             this.bttn_ElimLog.UseVisualStyleBackColor = true;
-            this.bttn_ElimLog.Click += new System.EventHandler(this.ElimLog_Click);
             // 
             // bttn_ElimFisic
             // 
@@ -117,7 +115,6 @@
             this.bttn_ElimFisic.TabIndex = 8;
             this.bttn_ElimFisic.Text = "Eliminazione Fisica";
             this.bttn_ElimFisic.UseVisualStyleBackColor = true;
-            this.bttn_ElimFisic.Click += new System.EventHandler(this.ElimFisic_Click);
             // 
             // label1
             // 
@@ -185,6 +182,7 @@
             this.Controls.Add(this.txt_Nome);
             this.Name = "Form1";
             this.Text = "Form1";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
