@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
@@ -23,6 +24,7 @@ namespace CRUDAccDirPRODOTTI
         }
         public prodotti[] p= new prodotti[100];
         public int NumeroRecord;
+        public bool cq = false;
         public Form1()
         {
             InitializeComponent();
@@ -177,45 +179,79 @@ namespace CRUDAccDirPRODOTTI
                 int size = 64;
                 string Nome = txt_Nome.Text, Prezzo = txt_Prezzo.Text;
 
-                string riga = Nome.PadRight(32) + Prezzo.PadRight(32);
-
-                strInByte = Encoding.Default.GetBytes(riga);
-                string prodotto;
+               
+                int quantità=1;
+                string riga;
+                string prodotto,nom,prez,q;
                 bool c = false;
-
                 int n = 0;
 
-                while (c == false) 
+                if(NumeroRecord>=1)
                 {
-                    br.BaseStream.Seek((n) * 64, 0);
+                    Ricerca(p, Nome);
+                }
+                if(cq==true)
+                {
+                    br.BaseStream.Seek(Ricerca(p, Nome) * 64, 0);
 
                     byte[] bit = br.ReadBytes(30);
+                    nom = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
 
-                    prodotto = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
+                    bit = br.ReadBytes(30);
+                    prez = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
 
-                    if (prodotto[0] != '@')
+                    bit = br.ReadBytes(4);
+                    q = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
+                    int z = int.Parse(q);
+                    z++;
+
+                    riga = nom.PadRight(30) + prez.PadRight(30) + z.ToString().PadRight(4);
+                    strInByte = Encoding.Default.GetBytes(riga);
+
+                    f_out.BaseStream.Seek(Ricerca(p, Nome) * size, SeekOrigin.Begin);
+                    f_out.Write(strInByte);
+
+                    MessageBox.Show($"Quantità di {nom} aumentata");
+                }
+                else
+                {
+                    riga = Nome.PadRight(30) + Prezzo.PadRight(30) + quantità.ToString().PadRight(4);
+
+                    strInByte = Encoding.Default.GetBytes(riga);
+
+                    while (c == false)
                     {
-                        n++;
-                        
-                    }
-                    else
-                    {
-                        p[n].Nome = Nome;
-                        p[n].posizione = n;
+                        br.BaseStream.Seek((n) * 64, 0);
 
-                        f_out.BaseStream.Seek((n) * size, SeekOrigin.Begin);
-                        f_out.Write(strInByte);
+                        byte[] bit = br.ReadBytes(30);
 
-                        MessageBox.Show("Prodotto aggiunto");
+                        prodotto = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
 
-                        
-                        NumeroRecord++;
-                        c = true;
+                        if (prodotto[0] != '@')
+                        {
+                            n++;
+                        }
+                        else
+                        {
+                            p[n].Nome = Nome;
+                            p[n].posizione = n;
+
+                            f_out.BaseStream.Seek((n) * size, SeekOrigin.Begin);
+                            f_out.Write(strInByte);
+
+                            MessageBox.Show("Prodotto aggiunto");
+
+
+                            NumeroRecord++;
+                            c = true;
+                        }
                     }
                 }
+               
 
                 OrdALf();
 
+                br.Close();
                 f_out.Close();
                 file.Close();
 
@@ -244,167 +280,196 @@ namespace CRUDAccDirPRODOTTI
             }
         }
 
-       /* private void bttn_modifica_Click(object sender, EventArgs e)
+        public int Ricerca(prodotti[] array, string elemento)
         {
-            if (NumeroRecord != 0)
-            {
-                FileStream file = new FileStream("Lista.dat", FileMode.OpenOrCreate, FileAccess.ReadWrite);
-                BinaryWriter f_out = new BinaryWriter(file);
+            int inizio = 0;
+            int fine = NumeroRecord-1;
 
-                string cercaprod = txt_cerca.Text;
-                string numero = txt_nuovoP.Text;
-                bool controllo = int.TryParse(numero, out _);//TryParse converte un numero da stringa a intero, se non riesce da controllo==false
-                //se le text box sono vuote appare il messaggio appare schermo fino a quando entrambi i campi non saranno pieni
-                if (String.IsNullOrEmpty(txt_cerca.Text) || String.IsNullOrEmpty(txt_nuovoN.Text) || String.IsNullOrEmpty(txt_nuovoP.Text))
+            while (inizio <= fine)
+            {
+                int medio = (inizio + fine) / 2;
+                string valoreMedio = array[medio].Nome;
+
+                if (valoreMedio == elemento)
                 {
-                    MessageBox.Show("Devi riempire tutti i campi per aggiungere un prodotto");
+                    cq = true;
+                    return medio;  // Elemento trovato, restituisci l'indice.
                 }
-                //se sono presenti lettere nel campo dedicato al prezzo non permette di continuare
-                else if (controllo == false)
+                else if (valoreMedio.CompareTo(elemento) < 0)
                 {
-                    MessageBox.Show("Non puoi inserire lettere in questo campo");
-                    txt_nuovoP.Text = ("");
+                    inizio = medio + 1;  // L'elemento è nella metà superiore.
                 }
-                //quando le text box sono compilate i dati vengono salvati all'interno dell'array
                 else
                 {
-                    for (int i = 0; i < NumeroRecord; i++)
-                    {
-                        if (cercaprod == p[i].Nome)
-                        {
-                           
-                            byte[] strInByte;
-                            int size = 64;
-                            string Nome = txt_nuovoN.Text, Prezzo = txt_nuovoP.Text;
-
-                            string riga = Nome.PadRight(32) + Prezzo.PadRight(32);
-
-                            strInByte = Encoding.Default.GetBytes(riga);
-
-                            f_out.BaseStream.Seek((i) * size, SeekOrigin.Begin);
-                            f_out.Write(strInByte);
-
-                            MessageBox.Show("Prodotto modificato");
-                        }
-                    }
+                    fine = medio - 1;  // L'elemento è nella metà inferiore.
                 }
-            
-                txt_cerca.Clear(); txt_nuovoN.Clear(); txt_nuovoP.Clear();
-
-                file.Close();
-                f_out.Close();
             }
-            else
-            {
-                MessageBox.Show("Non puoi modificare il file perchè è vuoto");
-            }
-        }
-/*
-        private void ElimLog_Click(object sender, EventArgs e)
-        {
-            if (NumeroRecord != 0)
-            {
-                FileStream file = new FileStream("Lista.dat", FileMode.OpenOrCreate, FileAccess.ReadWrite);
-                BinaryWriter f_out = new BinaryWriter(file);
 
-                string cercaprod = txt_cerca.Text;
-                
-                //se le text box sono vuote appare il messaggio appare schermo fino a quando entrambi i campi non saranno pieni
-                if (String.IsNullOrEmpty(txt_cerca.Text))
-                {
-                    MessageBox.Show("Devi riempire tutti i campi per aggiungere un prodotto");
-                }
-                //quando le text box sono compilate i dati vengono salvati all'interno dell'array
-                else
-                {
-                    for (int i = 0; i < NumeroRecord; i++)
-                    {
-                        if (cercaprod == prodotti[i])
-                        {
-
-                            byte[] strInByte;
-                            int size = 64;
-                            string Nome = prodotti[i];
-                            prodotti[i] = '0' + prodotti[i];
-
-                            string riga = '0'+Nome.PadRight(30) + '0';
-
-                            strInByte = Encoding.Default.GetBytes(riga);
-
-                            f_out.BaseStream.Seek((i) * size, SeekOrigin.Begin);
-                            f_out.Write(strInByte);
-
-                            MessageBox.Show("Prodotto eliminato");
-                        }
-                    }
-                }
-
-                txt_cerca.Clear(); txt_nuovoN.Clear(); txt_nuovoP.Clear();
-
-                file.Close();
-                f_out.Close();
-            }
-            else
-            {
-                MessageBox.Show("Non puoi eliminare il file perchè è vuoto");
-            }
+            return -1;  // Elemento non trovato.
         }
 
-        private void ElimFisic_Click(object sender, EventArgs e)
-        {
 
-            if (NumeroRecord != 0)
-            {
-                FileStream file = new FileStream("Lista.dat", FileMode.OpenOrCreate, FileAccess.ReadWrite);
-                BinaryWriter f_out = new BinaryWriter(file);
+        /* private void bttn_modifica_Click(object sender, EventArgs e)
+         {
+             if (NumeroRecord != 0)
+             {
+                 FileStream file = new FileStream("Lista.dat", FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                 BinaryWriter f_out = new BinaryWriter(file);
 
-                string cercaprod = txt_cerca.Text;
+                 string cercaprod = txt_cerca.Text;
+                 string numero = txt_nuovoP.Text;
+                 bool controllo = int.TryParse(numero, out _);//TryParse converte un numero da stringa a intero, se non riesce da controllo==false
+                 //se le text box sono vuote appare il messaggio appare schermo fino a quando entrambi i campi non saranno pieni
+                 if (String.IsNullOrEmpty(txt_cerca.Text) || String.IsNullOrEmpty(txt_nuovoN.Text) || String.IsNullOrEmpty(txt_nuovoP.Text))
+                 {
+                     MessageBox.Show("Devi riempire tutti i campi per aggiungere un prodotto");
+                 }
+                 //se sono presenti lettere nel campo dedicato al prezzo non permette di continuare
+                 else if (controllo == false)
+                 {
+                     MessageBox.Show("Non puoi inserire lettere in questo campo");
+                     txt_nuovoP.Text = ("");
+                 }
+                 //quando le text box sono compilate i dati vengono salvati all'interno dell'array
+                 else
+                 {
+                     for (int i = 0; i < NumeroRecord; i++)
+                     {
+                         if (cercaprod == p[i].Nome)
+                         {
 
-                //se le text box sono vuote appare il messaggio appare schermo fino a quando entrambi i campi non saranno pieni
-                if (String.IsNullOrEmpty(txt_cerca.Text))
-                {
-                    MessageBox.Show("Devi riempire tutti i campi per aggiungere un prodotto");
-                }
-                //quando le text box sono compilate i dati vengono salvati all'interno dell'array
-                else
-                {
-                    for (int i = 0; i < NumeroRecord; i++)
-                    {
-                        if (cercaprod == prodotti[i])
-                        {
+                             byte[] strInByte;
+                             int size = 64;
+                             string Nome = txt_nuovoN.Text, Prezzo = txt_nuovoP.Text;
 
-                            byte[] strInByte;
-                            int size = 64;
-                            
-                            string chiocciola = "@";
-                            
+                             string riga = Nome.PadRight(32) + Prezzo.PadRight(32);
 
-                            string riga = chiocciola.PadRight(32) + chiocciola.PadRight(32);
+                             strInByte = Encoding.Default.GetBytes(riga);
 
-                            prodotti[i] = null;
+                             f_out.BaseStream.Seek((i) * size, SeekOrigin.Begin);
+                             f_out.Write(strInByte);
 
-                            NumeroRecord--;
-                            
+                             MessageBox.Show("Prodotto modificato");
+                         }
+                     }
+                 }
 
-                            strInByte = Encoding.Default.GetBytes(riga);
+                 txt_cerca.Clear(); txt_nuovoN.Clear(); txt_nuovoP.Clear();
 
-                            f_out.BaseStream.Seek((i) * size, SeekOrigin.Begin);
-                            f_out.Write(strInByte);
+                 file.Close();
+                 f_out.Close();
+             }
+             else
+             {
+                 MessageBox.Show("Non puoi modificare il file perchè è vuoto");
+             }
+         }
+ /*
+         private void ElimLog_Click(object sender, EventArgs e)
+         {
+             if (NumeroRecord != 0)
+             {
+                 FileStream file = new FileStream("Lista.dat", FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                 BinaryWriter f_out = new BinaryWriter(file);
 
-                            MessageBox.Show("Prodotto eliminato");
-                        }
-                    }
-                }
+                 string cercaprod = txt_cerca.Text;
 
-                txt_cerca.Clear(); txt_nuovoN.Clear(); txt_nuovoP.Clear();
+                 //se le text box sono vuote appare il messaggio appare schermo fino a quando entrambi i campi non saranno pieni
+                 if (String.IsNullOrEmpty(txt_cerca.Text))
+                 {
+                     MessageBox.Show("Devi riempire tutti i campi per aggiungere un prodotto");
+                 }
+                 //quando le text box sono compilate i dati vengono salvati all'interno dell'array
+                 else
+                 {
+                     for (int i = 0; i < NumeroRecord; i++)
+                     {
+                         if (cercaprod == prodotti[i])
+                         {
 
-                file.Close();
-                f_out.Close();
-            }
-            else
-            {
-                MessageBox.Show("Non puoi eliminare il file perchè è vuoto");
-            }
-        }*/
+                             byte[] strInByte;
+                             int size = 64;
+                             string Nome = prodotti[i];
+                             prodotti[i] = '0' + prodotti[i];
+
+                             string riga = '0'+Nome.PadRight(30) + '0';
+
+                             strInByte = Encoding.Default.GetBytes(riga);
+
+                             f_out.BaseStream.Seek((i) * size, SeekOrigin.Begin);
+                             f_out.Write(strInByte);
+
+                             MessageBox.Show("Prodotto eliminato");
+                         }
+                     }
+                 }
+
+                 txt_cerca.Clear(); txt_nuovoN.Clear(); txt_nuovoP.Clear();
+
+                 file.Close();
+                 f_out.Close();
+             }
+             else
+             {
+                 MessageBox.Show("Non puoi eliminare il file perchè è vuoto");
+             }
+         }
+
+         private void ElimFisic_Click(object sender, EventArgs e)
+         {
+
+             if (NumeroRecord != 0)
+             {
+                 FileStream file = new FileStream("Lista.dat", FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                 BinaryWriter f_out = new BinaryWriter(file);
+
+                 string cercaprod = txt_cerca.Text;
+
+                 //se le text box sono vuote appare il messaggio appare schermo fino a quando entrambi i campi non saranno pieni
+                 if (String.IsNullOrEmpty(txt_cerca.Text))
+                 {
+                     MessageBox.Show("Devi riempire tutti i campi per aggiungere un prodotto");
+                 }
+                 //quando le text box sono compilate i dati vengono salvati all'interno dell'array
+                 else
+                 {
+                     for (int i = 0; i < NumeroRecord; i++)
+                     {
+                         if (cercaprod == prodotti[i])
+                         {
+
+                             byte[] strInByte;
+                             int size = 64;
+
+                             string chiocciola = "@";
+
+
+                             string riga = chiocciola.PadRight(32) + chiocciola.PadRight(32);
+
+                             prodotti[i] = null;
+
+                             NumeroRecord--;
+
+
+                             strInByte = Encoding.Default.GetBytes(riga);
+
+                             f_out.BaseStream.Seek((i) * size, SeekOrigin.Begin);
+                             f_out.Write(strInByte);
+
+                             MessageBox.Show("Prodotto eliminato");
+                         }
+                     }
+                 }
+
+                 txt_cerca.Clear(); txt_nuovoN.Clear(); txt_nuovoP.Clear();
+
+                 file.Close();
+                 f_out.Close();
+             }
+             else
+             {
+                 MessageBox.Show("Non puoi eliminare il file perchè è vuoto");
+             }
+         }*/
     }
 }
