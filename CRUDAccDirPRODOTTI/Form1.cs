@@ -24,7 +24,7 @@ namespace CRUDAccDirPRODOTTI
         }
         public prodotti[] p= new prodotti[100];
         public int NumeroRecord;
-        public bool cq = false;
+        
         public Form1()
         {
             InitializeComponent();
@@ -186,11 +186,11 @@ namespace CRUDAccDirPRODOTTI
                 bool c = false;
                 int n = 0;
 
-                if(NumeroRecord>=1)
+                if(NumeroRecord!=0)
                 {
                     Ricerca(p, Nome);
                 }
-                if(cq==true)
+                if(Ricerca(p, Nome) != -1)
                 {
                     br.BaseStream.Seek(Ricerca(p, Nome) * 64, 0);
 
@@ -279,7 +279,8 @@ namespace CRUDAccDirPRODOTTI
                 }
             }
         }
-
+        
+        //FUNZIONE RICERCA, RICERCA IL PRODOTTO NELLA LISTA E RITORNA LA POSIZIONE IN CUI SI TROVA
         public int Ricerca(prodotti[] array, string elemento)
         {
             int inizio = 0;
@@ -292,7 +293,6 @@ namespace CRUDAccDirPRODOTTI
 
                 if (valoreMedio == elemento)
                 {
-                    cq = true;
                     return medio;  // Elemento trovato, restituisci l'indice.
                 }
                 else if (valoreMedio.CompareTo(elemento) < 0)
@@ -308,168 +308,236 @@ namespace CRUDAccDirPRODOTTI
             return -1;  // Elemento non trovato.
         }
 
+        //PULSANTE CERCA, SE IL PRODOTTO ESISTE NELLA LISTA PUO' ESSERE MODIFICATO  
+        private void button1_Click(object sender, EventArgs e)
+        {
+            if (NumeroRecord != 0)
+            {
+                FileStream file = new FileStream("Lista.dat", FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                BinaryWriter f_out = new BinaryWriter(file);
+                BinaryReader br = new BinaryReader(file);
 
-        /* private void bttn_modifica_Click(object sender, EventArgs e)
-         {
-             if (NumeroRecord != 0)
-             {
-                 FileStream file = new FileStream("Lista.dat", FileMode.OpenOrCreate, FileAccess.ReadWrite);
-                 BinaryWriter f_out = new BinaryWriter(file);
+                string nom, prez, q;
+                string cercaprod = txt_cerca.Text;
+                string numero = txt_nuovoP.Text;
 
-                 string cercaprod = txt_cerca.Text;
-                 string numero = txt_nuovoP.Text;
-                 bool controllo = int.TryParse(numero, out _);//TryParse converte un numero da stringa a intero, se non riesce da controllo==false
-                 //se le text box sono vuote appare il messaggio appare schermo fino a quando entrambi i campi non saranno pieni
-                 if (String.IsNullOrEmpty(txt_cerca.Text) || String.IsNullOrEmpty(txt_nuovoN.Text) || String.IsNullOrEmpty(txt_nuovoP.Text))
-                 {
-                     MessageBox.Show("Devi riempire tutti i campi per aggiungere un prodotto");
-                 }
-                 //se sono presenti lettere nel campo dedicato al prezzo non permette di continuare
-                 else if (controllo == false)
-                 {
-                     MessageBox.Show("Non puoi inserire lettere in questo campo");
-                     txt_nuovoP.Text = ("");
-                 }
-                 //quando le text box sono compilate i dati vengono salvati all'interno dell'array
-                 else
-                 {
-                     for (int i = 0; i < NumeroRecord; i++)
-                     {
-                         if (cercaprod == p[i].Nome)
-                         {
+                //se le text box sono vuote appare il messaggio appare schermo fino a quando entrambi i campi non saranno pieni
+                if (String.IsNullOrEmpty(txt_cerca.Text))
+                {
+                    MessageBox.Show("Devi riempire tutti i campi per aggiungere un prodotto");
+                }
+                else
+                {
+                    Ricerca(p, cercaprod);
 
-                             byte[] strInByte;
-                             int size = 64;
-                             string Nome = txt_nuovoN.Text, Prezzo = txt_nuovoP.Text;
+                    if (Ricerca(p, cercaprod) == -1)
+                    {
+                        MessageBox.Show("Non esiste il prodotto nella lista");
+                    }
+                    else
+                    {
+                        br.BaseStream.Seek(Ricerca(p, cercaprod) * 64, 0);
 
-                             string riga = Nome.PadRight(32) + Prezzo.PadRight(32);
+                        byte[] bit = br.ReadBytes(30);
+                        nom = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
+                        txt_nuovoN.Text = nom;
 
-                             strInByte = Encoding.Default.GetBytes(riga);
+                        bit = br.ReadBytes(30);
+                        prez = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
+                        txt_nuovoP.Text = prez;
 
-                             f_out.BaseStream.Seek((i) * size, SeekOrigin.Begin);
-                             f_out.Write(strInByte);
+                        bit = br.ReadBytes(4);
+                        q = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
 
-                             MessageBox.Show("Prodotto modificato");
-                         }
-                     }
-                 }
+                    }
+                }
+                file.Close();
+                f_out.Close();
+            }
+        }
 
-                 txt_cerca.Clear(); txt_nuovoN.Clear(); txt_nuovoP.Clear();
+        private void bttn_modifica_Click_1(object sender, EventArgs e)
+        {
+            if (NumeroRecord != 0)
+            {
+                FileStream file = new FileStream("Lista.dat", FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                BinaryWriter f_out = new BinaryWriter(file);
+                BinaryReader br = new BinaryReader(file);
 
-                 file.Close();
-                 f_out.Close();
-             }
-             else
-             {
-                 MessageBox.Show("Non puoi modificare il file perchè è vuoto");
-             }
-         }
- /*
-         private void ElimLog_Click(object sender, EventArgs e)
-         {
-             if (NumeroRecord != 0)
-             {
-                 FileStream file = new FileStream("Lista.dat", FileMode.OpenOrCreate, FileAccess.ReadWrite);
-                 BinaryWriter f_out = new BinaryWriter(file);
+                byte[] strInByte;
+                int size = 64;
+                string riga;
+                string nom, prez, q;
+                string cercaprod = txt_cerca.Text;
+                string numero = txt_nuovoP.Text;
+                bool controllo = int.TryParse(numero, out _);//TryParse converte un numero da stringa a intero, se non riesce da controllo==false
 
-                 string cercaprod = txt_cerca.Text;
+                //se le text box sono vuote appare il messaggio appare schermo fino a quando entrambi i campi non saranno pieni
+                if (String.IsNullOrEmpty(txt_nuovoN.Text) || String.IsNullOrEmpty(txt_nuovoP.Text))
+                {
+                    MessageBox.Show("Devi riempire tutti i campi per aggiungere un prodotto");
+                }
+                //se sono presenti lettere nel campo dedicato al prezzo non permette di continuare
+                else if (controllo == false)
+                {
+                    MessageBox.Show("Non puoi inserire lettere in questo campo");
+                    txt_nuovoP.Text = ("");
+                }
+                //quando le text box sono compilate i dati vengono salvati all'interno dell'array
+                else
+                {
+                    Ricerca(p, cercaprod);
 
-                 //se le text box sono vuote appare il messaggio appare schermo fino a quando entrambi i campi non saranno pieni
-                 if (String.IsNullOrEmpty(txt_cerca.Text))
-                 {
-                     MessageBox.Show("Devi riempire tutti i campi per aggiungere un prodotto");
-                 }
-                 //quando le text box sono compilate i dati vengono salvati all'interno dell'array
-                 else
-                 {
-                     for (int i = 0; i < NumeroRecord; i++)
-                     {
-                         if (cercaprod == prodotti[i])
-                         {
+                    if (Ricerca(p, cercaprod) == -1)
+                    {
+                        MessageBox.Show("Non esiste il prodotto nella lista");
+                    }
+                    else
+                    {
+                        br.BaseStream.Seek(Ricerca(p, cercaprod) * 64, 0);
 
-                             byte[] strInByte;
-                             int size = 64;
-                             string Nome = prodotti[i];
-                             prodotti[i] = '0' + prodotti[i];
+                        byte[] bit = br.ReadBytes(30);
+                        nom = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
+                        
+                        bit = br.ReadBytes(30);
+                        prez = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
+                        
+                        bit = br.ReadBytes(4);
+                        q = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
 
-                             string riga = '0'+Nome.PadRight(30) + '0';
+                        string N = txt_nuovoN.Text, P = txt_nuovoP.Text;
 
-                             strInByte = Encoding.Default.GetBytes(riga);
+                        riga = N.PadRight(30) + P.PadRight(30) + q.ToString().PadRight(4);
+                        strInByte = Encoding.Default.GetBytes(riga);
 
-                             f_out.BaseStream.Seek((i) * size, SeekOrigin.Begin);
-                             f_out.Write(strInByte);
+                        f_out.BaseStream.Seek(Ricerca(p, cercaprod) * size, SeekOrigin.Begin);
+                        f_out.Write(strInByte);
 
-                             MessageBox.Show("Prodotto eliminato");
-                         }
-                     }
-                 }
+                        p[NumeroRecord].Nome = N;
 
-                 txt_cerca.Clear(); txt_nuovoN.Clear(); txt_nuovoP.Clear();
+                        MessageBox.Show("Prodotto modificato");
 
-                 file.Close();
-                 f_out.Close();
-             }
-             else
-             {
-                 MessageBox.Show("Non puoi eliminare il file perchè è vuoto");
-             }
-         }
+                    }
+                }
 
-         private void ElimFisic_Click(object sender, EventArgs e)
-         {
+                txt_cerca.Clear(); txt_nuovoN.Clear(); txt_nuovoP.Clear();
 
-             if (NumeroRecord != 0)
-             {
-                 FileStream file = new FileStream("Lista.dat", FileMode.OpenOrCreate, FileAccess.ReadWrite);
-                 BinaryWriter f_out = new BinaryWriter(file);
-
-                 string cercaprod = txt_cerca.Text;
-
-                 //se le text box sono vuote appare il messaggio appare schermo fino a quando entrambi i campi non saranno pieni
-                 if (String.IsNullOrEmpty(txt_cerca.Text))
-                 {
-                     MessageBox.Show("Devi riempire tutti i campi per aggiungere un prodotto");
-                 }
-                 //quando le text box sono compilate i dati vengono salvati all'interno dell'array
-                 else
-                 {
-                     for (int i = 0; i < NumeroRecord; i++)
-                     {
-                         if (cercaprod == prodotti[i])
-                         {
-
-                             byte[] strInByte;
-                             int size = 64;
-
-                             string chiocciola = "@";
+                file.Close();
+                f_out.Close();
+            }
+            else
+            {
+                MessageBox.Show("Non puoi modificare il file perchè è vuoto");
+            }
+        }
 
 
-                             string riga = chiocciola.PadRight(32) + chiocciola.PadRight(32);
+        /*
+       private void ElimLog_Click(object sender, EventArgs e)
+       {
+           if (NumeroRecord != 0)
+           {
+               FileStream file = new FileStream("Lista.dat", FileMode.OpenOrCreate, FileAccess.ReadWrite);
+               BinaryWriter f_out = new BinaryWriter(file);
 
-                             prodotti[i] = null;
+               string cercaprod = txt_cerca.Text;
 
-                             NumeroRecord--;
+               //se le text box sono vuote appare il messaggio appare schermo fino a quando entrambi i campi non saranno pieni
+               if (String.IsNullOrEmpty(txt_cerca.Text))
+               {
+                   MessageBox.Show("Devi riempire tutti i campi per aggiungere un prodotto");
+               }
+               //quando le text box sono compilate i dati vengono salvati all'interno dell'array
+               else
+               {
+                   for (int i = 0; i < NumeroRecord; i++)
+                   {
+                       if (cercaprod == prodotti[i])
+                       {
+
+                           byte[] strInByte;
+                           int size = 64;
+                           string Nome = prodotti[i];
+                           prodotti[i] = '0' + prodotti[i];
+
+                           string riga = '0'+Nome.PadRight(30) + '0';
+
+                           strInByte = Encoding.Default.GetBytes(riga);
+
+                           f_out.BaseStream.Seek((i) * size, SeekOrigin.Begin);
+                           f_out.Write(strInByte);
+
+                           MessageBox.Show("Prodotto eliminato");
+                       }
+                   }
+               }
+
+               txt_cerca.Clear(); txt_nuovoN.Clear(); txt_nuovoP.Clear();
+
+               file.Close();
+               f_out.Close();
+           }
+           else
+           {
+               MessageBox.Show("Non puoi eliminare il file perchè è vuoto");
+           }
+       }
+
+       private void ElimFisic_Click(object sender, EventArgs e)
+       {
+
+           if (NumeroRecord != 0)
+           {
+               FileStream file = new FileStream("Lista.dat", FileMode.OpenOrCreate, FileAccess.ReadWrite);
+               BinaryWriter f_out = new BinaryWriter(file);
+
+               string cercaprod = txt_cerca.Text;
+
+               //se le text box sono vuote appare il messaggio appare schermo fino a quando entrambi i campi non saranno pieni
+               if (String.IsNullOrEmpty(txt_cerca.Text))
+               {
+                   MessageBox.Show("Devi riempire tutti i campi per aggiungere un prodotto");
+               }
+               //quando le text box sono compilate i dati vengono salvati all'interno dell'array
+               else
+               {
+                   for (int i = 0; i < NumeroRecord; i++)
+                   {
+                       if (cercaprod == prodotti[i])
+                       {
+
+                           byte[] strInByte;
+                           int size = 64;
+
+                           string chiocciola = "@";
 
 
-                             strInByte = Encoding.Default.GetBytes(riga);
+                           string riga = chiocciola.PadRight(32) + chiocciola.PadRight(32);
 
-                             f_out.BaseStream.Seek((i) * size, SeekOrigin.Begin);
-                             f_out.Write(strInByte);
+                           prodotti[i] = null;
 
-                             MessageBox.Show("Prodotto eliminato");
-                         }
-                     }
-                 }
+                           NumeroRecord--;
 
-                 txt_cerca.Clear(); txt_nuovoN.Clear(); txt_nuovoP.Clear();
 
-                 file.Close();
-                 f_out.Close();
-             }
-             else
-             {
-                 MessageBox.Show("Non puoi eliminare il file perchè è vuoto");
-             }
-         }*/
+                           strInByte = Encoding.Default.GetBytes(riga);
+
+                           f_out.BaseStream.Seek((i) * size, SeekOrigin.Begin);
+                           f_out.Write(strInByte);
+
+                           MessageBox.Show("Prodotto eliminato");
+                       }
+                   }
+               }
+
+               txt_cerca.Clear(); txt_nuovoN.Clear(); txt_nuovoP.Clear();
+
+               file.Close();
+               f_out.Close();
+           }
+           else
+           {
+               MessageBox.Show("Non puoi eliminare il file perchè è vuoto");
+           }
+       }*/
     }
 }
