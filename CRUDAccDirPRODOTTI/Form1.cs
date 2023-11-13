@@ -186,32 +186,65 @@ namespace CRUDAccDirPRODOTTI
                 bool c = false;
                 int n = 0;
 
-                if(NumeroRecord!=0)
+                if (NumeroRecord != 0)
                 {
-                    Ricerca(p, Nome);
-                }
-                if(p[Ricerca(p, Nome)].posizione != -1)
-                {
-                    br.BaseStream.Seek(p[Ricerca(p, Nome)].posizione * 64, 0);
+                    if (Ricerca(p, Nome) != -1)
+                    {
+                        br.BaseStream.Seek(p[Ricerca(p, Nome)].posizione * 64, 0);
 
-                    byte[] bit = br.ReadBytes(30);
-                    nom = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
+                        byte[] bit = br.ReadBytes(30);
+                        nom = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
 
-                    bit = br.ReadBytes(30);
-                    prez = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
+                        bit = br.ReadBytes(30);
+                        prez = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
 
-                    bit = br.ReadBytes(4);
-                    q = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
-                    int z = int.Parse(q);
-                    z++;
+                        bit = br.ReadBytes(4);
+                        q = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
+                        int z = int.Parse(q);
+                        z++;
 
-                    riga = nom.PadRight(30) + prez.PadRight(30) + z.ToString().PadRight(4);
-                    strInByte = Encoding.Default.GetBytes(riga);
+                        riga = nom.PadRight(30) + prez.PadRight(30) + z.ToString().PadRight(4);
+                        strInByte = Encoding.Default.GetBytes(riga);
 
-                    f_out.BaseStream.Seek(p[Ricerca(p, Nome)].posizione * size, SeekOrigin.Begin);
-                    f_out.Write(strInByte);
+                        f_out.BaseStream.Seek(p[Ricerca(p, Nome)].posizione * size, SeekOrigin.Begin);
+                        f_out.Write(strInByte);
 
-                    MessageBox.Show($"Quantità di {nom} aumentata");
+                        MessageBox.Show($"Quantità di {nom} aumentata");
+                    }
+                    else
+                    {
+                        riga = Nome.PadRight(30) + Prezzo.PadRight(30) + quantità.ToString().PadRight(4);
+
+                        strInByte = Encoding.Default.GetBytes(riga);
+
+                        while (c == false)
+                        {
+                            br.BaseStream.Seek((n) * 64, 0);
+
+                            byte[] bit = br.ReadBytes(30);
+
+                            prodotto = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
+
+                            if (prodotto[0] != '@')
+                            {
+                                n++;
+                            }
+                            else
+                            {
+                                p[n].Nome = Nome;
+                                p[n].posizione = n;
+
+                                f_out.BaseStream.Seek((n) * size, SeekOrigin.Begin);
+                                f_out.Write(strInByte);
+
+                                MessageBox.Show("Prodotto aggiunto");
+
+
+                                NumeroRecord++;
+                                c = true;
+                            }
+                        }
+                    }
                 }
                 else
                 {
@@ -328,9 +361,10 @@ namespace CRUDAccDirPRODOTTI
                 }
                 else
                 {
-                    if (p[Ricerca(p, cercaprod)].posizione == -1)
+                    if (Ricerca(p, cercaprod) == -1)
                     {
                         MessageBox.Show("Non esiste il prodotto nella lista");
+                        txt_cerca.Clear();
                     }
                     else
                     {
@@ -520,6 +554,8 @@ namespace CRUDAccDirPRODOTTI
                 MessageBox.Show("Non puoi eliminare il file perchè è vuoto");
             }
         }
+
+        
 
         /* private void ElimFisic_Click(object sender, EventArgs e)
          {
