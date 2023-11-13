@@ -16,11 +16,11 @@ namespace CRUDAccDirPRODOTTI
 {
     public partial class Form1 : Form
     {
-
+        //DICHIARAZIONE DELL'ARRAY DI STRUCT
         public struct prodotti
         {
-            public string Nome;
-            public int posizione;
+            public string Nome;//variabile in cui si salva il nome del prodotto
+            public int posizione;//variabile in cui si salva la posizione del prodotto
         }
         public prodotti[] p= new prodotti[100];
         public int NumeroRecord;
@@ -32,6 +32,7 @@ namespace CRUDAccDirPRODOTTI
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            //CONTROLLI SE ESISTE IL FILE DAT E QUELLO TXT
             if (File.Exists("./Lista.dat") && File.Exists("./Struct.txt"))
             {
                 salvaStruct();
@@ -60,8 +61,6 @@ namespace CRUDAccDirPRODOTTI
         {
             StreamReader sr = new StreamReader(@"Struct.txt");
             string linea = sr.ReadLine();
-            
-
             do
             {
                 if(linea !=null)
@@ -186,6 +185,8 @@ namespace CRUDAccDirPRODOTTI
                 bool c = false;
                 int n = 0;
 
+                //se sono già presenti dei prodotti controlla se il nome è uguale al nome di un prodotto già presente
+                //aumenta la quantità di quel prodotto
                 if (NumeroRecord != 0)
                 {
                     if (Ricerca(p, Nome) != -1)
@@ -211,6 +212,7 @@ namespace CRUDAccDirPRODOTTI
 
                         MessageBox.Show($"Quantità di {nom} aumentata");
                     }
+                    //se non esiste già il nome aggiunge normalmente il prodotto
                     else
                     {
                         riga = Nome.PadRight(30) + Prezzo.PadRight(30) + quantità.ToString().PadRight(4);
@@ -246,6 +248,7 @@ namespace CRUDAccDirPRODOTTI
                         }
                     }
                 }
+                //se non sono presenti prodotti non viene fatto il controllo del nome e viene aggiunto il prodotto
                 else
                 {
                     riga = Nome.PadRight(30) + Prezzo.PadRight(30) + quantità.ToString().PadRight(4);
@@ -292,6 +295,7 @@ namespace CRUDAccDirPRODOTTI
             }
         }
         
+        //ORDINAMENTO ALFABETICO, VIENE RICHIAMATA PER ORDINARE L'ARRAY
         private void OrdALf()
         {
             //ordinamento BubbleSort che sfrutta la funzione CompareTo per confrontare i nomi dei prodotti
@@ -330,11 +334,11 @@ namespace CRUDAccDirPRODOTTI
                 }
                 else if (valoreMedio.CompareTo(elemento) < 0)
                 {
-                    inizio = medio + 1;  // L'elemento è nella metà superiore.
+                    inizio = medio + 1;
                 }
                 else
                 {
-                    fine = medio - 1;  // L'elemento è nella metà inferiore.
+                    fine = medio - 1;
                 }
             }
 
@@ -361,11 +365,13 @@ namespace CRUDAccDirPRODOTTI
                 }
                 else
                 {
+                    //se il prodotto non esiste nella lista
                     if (Ricerca(p, cercaprod) == -1)
                     {
                         MessageBox.Show("Non esiste il prodotto nella lista");
                         txt_cerca.Clear();
                     }
+                    //se il prodotto esiste stampa il nome e il prezzo nelle text box
                     else
                     {
                         br.BaseStream.Seek(p[Ricerca(p, cercaprod)].posizione * 64, 0);
@@ -386,8 +392,12 @@ namespace CRUDAccDirPRODOTTI
                 file.Close();
                 f_out.Close();
             }
+            else
+            {
+                MessageBox.Show("Non ci sono prodotti nella lista");
+            }
         }
-
+        //PULSANTE CHE SALVA I DATI INSERITI NELLE TEXT BOX DELLA MODIFICA
         private void bttn_modifica_Click_1(object sender, EventArgs e)
         {
             if (NumeroRecord != 0)
@@ -418,36 +428,28 @@ namespace CRUDAccDirPRODOTTI
                 //quando le text box sono compilate i dati vengono salvati all'interno dell'array
                 else
                 {
-                    if (Ricerca(p, cercaprod) == -1)
-                    {
-                        MessageBox.Show("Non esiste il prodotto nella lista");
-                    }
-                    else
-                    {
-                        br.BaseStream.Seek(p[Ricerca(p, cercaprod)].posizione * 64, 0);
+                    br.BaseStream.Seek(p[Ricerca(p, cercaprod)].posizione * 64, 0);
 
-                        byte[] bit = br.ReadBytes(30);
-                        nom = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
+                    byte[] bit = br.ReadBytes(30);
+                    nom = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
                         
-                        bit = br.ReadBytes(30);
-                        prez = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
+                    bit = br.ReadBytes(30);
+                    prez = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
                         
-                        bit = br.ReadBytes(4);
-                        q = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
+                    bit = br.ReadBytes(4);
+                    q = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
 
-                        string N = txt_nuovoN.Text, P = txt_nuovoP.Text;
+                    string N = txt_nuovoN.Text, P = txt_nuovoP.Text;
 
-                        riga = N.PadRight(30) + P.PadRight(30) + q.ToString().PadRight(4);
-                        strInByte = Encoding.Default.GetBytes(riga);
+                    riga = N.PadRight(30) + P.PadRight(30) + q.ToString().PadRight(4);
+                    strInByte = Encoding.Default.GetBytes(riga);
 
-                        f_out.BaseStream.Seek(p[Ricerca(p, cercaprod)].posizione * size, SeekOrigin.Begin);
-                        f_out.Write(strInByte);
+                    f_out.BaseStream.Seek(p[Ricerca(p, cercaprod)].posizione * size, SeekOrigin.Begin);
+                    f_out.Write(strInByte);
 
-                        p[Ricerca(p, cercaprod)].Nome = N;
+                    p[Ricerca(p, cercaprod)].Nome = N;
 
-                        MessageBox.Show("Prodotto modificato");
-
-                    }
+                    MessageBox.Show("Prodotto modificato");                  
                 }
 
                 txt_cerca.Clear(); txt_nuovoN.Clear(); txt_nuovoP.Clear();
@@ -460,13 +462,7 @@ namespace CRUDAccDirPRODOTTI
                 MessageBox.Show("Non puoi modificare il file perchè è vuoto");
             }
         }
-
-
-        
-       private void ElimLog_Click(object sender, EventArgs e)
-       {
-       }
-
+        //PULSANTE ELIMINAZIONE LOGICA
         private void bttn_ElimLog_Click(object sender, EventArgs e)
         {
 
@@ -496,6 +492,7 @@ namespace CRUDAccDirPRODOTTI
                     {
                         MessageBox.Show("Non esiste il prodotto nella lista");
                     }
+                    //se il prodotto esiste si posiziona sul byte e prima del nome mette un carattere per indicare ciò
                     else
                     {
                         br.BaseStream.Seek(p[Ricerca(p, cercaprod)].posizione * 64, 0);
