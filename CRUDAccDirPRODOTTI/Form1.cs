@@ -22,9 +22,9 @@ namespace CRUDAccDirPRODOTTI
             public string Nome;//variabile in cui si salva il nome del prodotto
             public int posizione;//variabile in cui si salva la posizione del prodotto
         }
-        public prodotti[] p= new prodotti[100];
+        public prodotti[] p = new prodotti[100];
         public int NumeroRecord;
-        
+
         public Form1()
         {
             InitializeComponent();
@@ -37,11 +37,11 @@ namespace CRUDAccDirPRODOTTI
             {
                 salvaStruct();
             }
-            else if (File.Exists("./Lista.dat") && File.Exists("./Struct.txt")==false)
+            else if (File.Exists("./Lista.dat") && File.Exists("./Struct.txt") == false)
             {
                 leggiEsalva();
             }
-            else if (File.Exists("./Lista.dat") == false && File.Exists("./Struct.txt") )
+            else if (File.Exists("./Lista.dat") == false && File.Exists("./Struct.txt"))
             {
                 CreaFile();
                 var file = new FileStream("Struct.txt", FileMode.Truncate, FileAccess.Write, FileShare.Read);
@@ -51,9 +51,9 @@ namespace CRUDAccDirPRODOTTI
             }
             else
             {
-              CreaFile();
+                CreaFile();
             }
-            
+
         }
 
         //FUNZIONE CHE LEGGE IL FILE TXT E SALVA LA POSIZIONE E IL NOME DEL PRODOTTO NELL'ARRAY 
@@ -63,7 +63,7 @@ namespace CRUDAccDirPRODOTTI
             string linea = sr.ReadLine();
             do
             {
-                if(linea !=null)
+                if (linea != null)
                 {
                     string[] l = linea.Split(';');
 
@@ -75,7 +75,7 @@ namespace CRUDAccDirPRODOTTI
                 }
 
             }
-            while(linea!=null);
+            while (linea != null);
 
             sr.Close();
         }
@@ -139,12 +139,11 @@ namespace CRUDAccDirPRODOTTI
             FileStream f = new FileStream("./Struct.txt", FileMode.OpenOrCreate, FileAccess.ReadWrite);
             StreamWriter sw = new StreamWriter(f);
 
+            OrdALf();
             for (int i = 0; i < NumeroRecord; i++)
             {
                 sw.WriteLine(p[i].Nome + ";" + p[i].posizione + ";");
             }
-            
-
             sw.Close();
         }
         //PULSANTE AGGIUNGI, QUNDO VIENE PREMUTO IL NOME, IL PREZZO E LA QUANTITA' VENGONO SALVATI NEL FILE DAT
@@ -178,10 +177,10 @@ namespace CRUDAccDirPRODOTTI
                 int size = 64;
                 string Nome = txt_Nome.Text, Prezzo = txt_Prezzo.Text;
 
-               
-                int quantità=1;
+
+                int quantità = 1;
                 string riga;
-                string prodotto,nom,prez,q;
+                string prodotto, nom, prez, q;
                 bool c = false;
                 int n = 0;
 
@@ -241,7 +240,6 @@ namespace CRUDAccDirPRODOTTI
 
                                 MessageBox.Show("Prodotto aggiunto");
 
-
                                 NumeroRecord++;
                                 c = true;
                             }
@@ -283,7 +281,7 @@ namespace CRUDAccDirPRODOTTI
                         }
                     }
                 }
-               
+
 
                 OrdALf();
 
@@ -291,15 +289,15 @@ namespace CRUDAccDirPRODOTTI
                 f_out.Close();
                 file.Close();
 
-                txt_Nome.Clear();txt_Prezzo.Clear();
+                txt_Nome.Clear(); txt_Prezzo.Clear();
             }
         }
-        
+
         //ORDINAMENTO ALFABETICO, VIENE RICHIAMATA PER ORDINARE L'ARRAY
         private void OrdALf()
         {
             //ordinamento BubbleSort che sfrutta la funzione CompareTo per confrontare i nomi dei prodotti
-            for (int i = 0; i <NumeroRecord; i++)
+            for (int i = 0; i < NumeroRecord; i++)
             {
                 for (int j = i + 1; j < NumeroRecord; j++)
                 {
@@ -316,12 +314,12 @@ namespace CRUDAccDirPRODOTTI
                 }
             }
         }
-        
+
         //FUNZIONE RICERCA, RICERCA IL PRODOTTO NELLA LISTA E RITORNA LA POSIZIONE IN CUI SI TROVA
         public int Ricerca(prodotti[] array, string elemento)
         {
             int inizio = 0;
-            int fine = NumeroRecord-1;
+            int fine = NumeroRecord - 1;
 
             while (inizio <= fine)
             {
@@ -386,7 +384,7 @@ namespace CRUDAccDirPRODOTTI
 
                         bit = br.ReadBytes(4);
                         q = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
-                        
+
                     }
                 }
                 file.Close();
@@ -432,10 +430,10 @@ namespace CRUDAccDirPRODOTTI
 
                     byte[] bit = br.ReadBytes(30);
                     nom = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
-                        
+
                     bit = br.ReadBytes(30);
                     prez = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
-                        
+
                     bit = br.ReadBytes(4);
                     q = Encoding.ASCII.GetString(bit, 0, bit.Length).Trim();
 
@@ -449,7 +447,7 @@ namespace CRUDAccDirPRODOTTI
 
                     p[Ricerca(p, cercaprod)].Nome = N;
 
-                    MessageBox.Show("Prodotto modificato");                  
+                    MessageBox.Show("Prodotto modificato");
                 }
 
                 txt_cerca.Clear(); txt_nuovoN.Clear(); txt_nuovoP.Clear();
@@ -517,26 +515,7 @@ namespace CRUDAccDirPRODOTTI
                         p[Ricerca(p, cercaprod)].Nome = 'ç' + nom;
 
                         MessageBox.Show("Prodotto eliminato logicamente");
-                        /*for (int i = 0; i < NumeroRecord; i++)
-                        {
-                            if (cercaprod == p[i].Nome)
-                            {
 
-                                byte[] strInByte;
-                                int size = 64;
-                                string Nome = p[i].Nome;
-                                p[i].Nome = '0' + p[i].Nome;
-
-                                string riga = '0' + Nome.PadRight(30) + '0';
-
-                                strInByte = Encoding.Default.GetBytes(riga);
-
-                                f_out.BaseStream.Seek((i) * size, SeekOrigin.Begin);
-                                f_out.Write(strInByte);
-
-                                MessageBox.Show("Prodotto eliminato");
-                            }
-                        }*/
                     }
                 }
 
@@ -552,63 +531,67 @@ namespace CRUDAccDirPRODOTTI
             }
         }
 
-        
+        private void bttn_ElimFisic_Click(object sender, EventArgs e)
+        {
+            if (NumeroRecord != 0)
+            {
 
-        /* private void ElimFisic_Click(object sender, EventArgs e)
-         {
+                FileStream file = new FileStream("Lista.dat", FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                BinaryWriter f_out = new BinaryWriter(file);
+                BinaryReader br = new BinaryReader(file);
 
-             if (NumeroRecord != 0)
-             {
-                 FileStream file = new FileStream("Lista.dat", FileMode.OpenOrCreate, FileAccess.ReadWrite);
-                 BinaryWriter f_out = new BinaryWriter(file);
+                byte[] strInByte;
+                int size = 64;
+                string riga;
+                string cercaprod = txt_elimina.Text;
 
-                 string cercaprod = txt_cerca.Text;
+                //se le text box sono vuote appare il messaggio appare schermo fino a quando entrambi i campi non saranno pieni
+                if (String.IsNullOrEmpty(txt_elimina.Text))
+                {
+                    MessageBox.Show("Devi specificare il nome del prodotto da eliminare");
+                }
+                //quando le text box sono compilate i dati vengono salvati all'interno dell'array
+                else
+                {
+                    if (Ricerca(p, cercaprod) == -1)
+                    {
+                        MessageBox.Show("Non esiste il prodotto nella lista");
+                    }
+                    //se il prodotto esiste si posiziona sul byte e prima del nome mette un carattere per indicare ciò
+                    else
+                    {
+                        f_out.BaseStream.Seek(p[Ricerca(p, cercaprod)].posizione * size, SeekOrigin.Begin);
 
-                 //se le text box sono vuote appare il messaggio appare schermo fino a quando entrambi i campi non saranno pieni
-                 if (String.IsNullOrEmpty(txt_cerca.Text))
-                 {
-                     MessageBox.Show("Devi riempire tutti i campi per aggiungere un prodotto");
-                 }
-                 //quando le text box sono compilate i dati vengono salvati all'interno dell'array
-                 else
-                 {
-                     for (int i = 0; i < NumeroRecord; i++)
-                     {
-                         if (cercaprod == prodotti[i])
-                         {
+                        string chiocciola = "@";
 
-                             byte[] strInByte;
-                             int size = 64;
+                        riga = chiocciola.PadRight(29) + chiocciola.PadRight(30) + chiocciola.ToString().PadRight(4);
+                        strInByte = Encoding.Default.GetBytes(riga);
 
-                             string chiocciola = "@";
+                        f_out.Write(strInByte);
+
+                        
+                        p[Ricerca(p, cercaprod)].Nome = "@";
+                        p[Ricerca(p, cercaprod)].posizione = 0;
 
 
-                             string riga = chiocciola.PadRight(32) + chiocciola.PadRight(32);
+                        MessageBox.Show("Prodotto eliminato fisicamente");
 
-                             prodotti[i] = null;
+                    }
+                }
 
-                             NumeroRecord--;
+                txt_elimina.Clear();
+
+                br.Close();
+                file.Close();
+                f_out.Close();
+            }
+
+            else
+            {
+                MessageBox.Show("Non puoi eliminare il file perchè è vuoto");
+            }
 
 
-                             strInByte = Encoding.Default.GetBytes(riga);
-
-                             f_out.BaseStream.Seek((i) * size, SeekOrigin.Begin);
-                             f_out.Write(strInByte);
-
-                             MessageBox.Show("Prodotto eliminato");
-                         }
-                     }
-                 }
-
-                 txt_cerca.Clear(); txt_nuovoN.Clear(); txt_nuovoP.Clear();
-
-                 file.Close();
-                 f_out.Close();
-             }
-             else
-             {
-                 MessageBox.Show("Non puoi eliminare il file perchè è vuoto");
-             }
-         }*/
+        }
     }
 }
